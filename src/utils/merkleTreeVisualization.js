@@ -74,3 +74,9 @@ console.log("Full Merkel Array: ", fullMerkelArray);
 const dynamicTreeNodeHtml = preOrderTraversal(fullMerkelArray, 0);
 
 console.log("Dynamic TreeNode HTML: ", dynamicTreeNodeHtml);
+
+module.exports = {
+    initMerkelArray,
+    constructMerkelArray,
+
+}
