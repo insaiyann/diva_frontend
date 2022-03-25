@@ -1,56 +1,76 @@
 const { createHash } = require('crypto');
 
-let a = ["1", "2", "3", "4", "5", "6", "7", "8"];
-
-let b = [{ "name": "tushar", "lastname": "singhal" }, { "name": "himanshu", "lastname": "yadav" }, { "name": "kanishk", "lastname": "goel" }];
-
-const constructArray = (json) => {
-    let arr=[];
-    for (let obj in json) {
-        arr.push(json[obj].lastname);
+const initMerkelArray = (identityObject) => {
+    let merkelArray = [];
+    for (let key in identityObject) {
+        merkelArray.push(identityObject[key]);
     }
-    let num = 1;
-    while (num < arr.length) num <<= 1;
-    for (let i = arr.length; i < num; i++) {
-        arr.push(arr[i - 1]);
+    // merkelArray = ["tushar", "singhal", "12345678", "M"]
+    let nearestPowerOf2 = 1;
+    while (nearestPowerOf2 < merkelArray.length) nearestPowerOf2 <<= 1;
+    let lastElement = merkelArray[merkelArray.length - 1];
+    for (let i = merkelArray.length; i < nearestPowerOf2; i++) {
+        merkelArray.push(lastElement);
     }
-    return arr;
+    return merkelArray;
 }
-let initialArr = constructArray(b);
-console.log(initialArr);
-const completeHashArray = (arr) => {
-    let currLevelLen = 0, temp=0;
-    while (1)
-    {
-        currLevelLen = arr.length - temp;
-        if (currLevelLen === 1)
-            break;
-        const len = arr.length;
-        for (let i = temp; i < len; i += 2)
-        {
-            const concatString = arr[i] + arr[i + 1];
-            //const resultHash = createHash('sha256').update(concatString).digest('hex').toString();
-            // arr=[...arr,resultHash];
-            arr=[...arr,concatString];
+
+const hashString = (str) => { return createHash('sha256').update(str).digest('hex').toString(); }
+
+const constructMerkelArray = (merkelArray) => {
+    let currLevelLen = 0, startIndex = 0;
+    let len = merkelArray.length;
+    
+    // not needed because all these fields are already encrypted
+    // merkelArray = merkelArray.map(item => { return hashString(item) });
+    
+    while (true) {        
+        len = merkelArray.length;
+        currLevelLen = len - startIndex;
+
+        // we have found root hash
+        if (currLevelLen === 1) break;
+        
+        for (let i = startIndex; i < len; i += 2) {
+            const concatString = merkelArray[i] + merkelArray[i + 1];
+            const resultHash = hashString(concatString);
+            merkelArray = [...merkelArray, resultHash];
         }
-        temp = len;
+        startIndex = len;
     }
-    return arr;
+    return merkelArray.reverse();
 }
 
-const preorder = (arr, i) => {
+const preOrderTraversal = (arr, i) => {
+    let dynamicHTML = "<TreeNode label={<div>" + arr[i] + "</div>}>",
+        lChild = "",
+        rChild = "";
     //left child
-    if (2 * i + 2 < arr.length) {
-        preorder(arr, 2 * i + 2);
+    if ((2 * i + 2) < arr.length) {
+        lChild = preOrderTraversal(arr, 2 * i + 2);
     }
     //right child
-    if (2 * i + 1 < arr.length) {
-        preorder(arr, 2 * i + 1);   
+    if ((2 * i + 1) < arr.length) {
+        rChild = preOrderTraversal(arr, 2 * i + 1);
     }
-    console.log(arr[i]);
-    return;
+    return dynamicHTML + lChild + rChild + "</TreeNode>";
 }
 
-initialArr = completeHashArray(initialArr);
-preorder(initialArr.reverse(), 0);
-//console.log(a);
+const personalIdentity = {
+    "firstname": "tushar",
+    "lastname": "singhal",
+    "aadhar": "12345678",
+    "gender": "M"
+};
+
+const initialIdentityArray = initMerkelArray(personalIdentity);
+
+console.log("Initial Array:", initialIdentityArray);
+
+const fullMerkelArray = constructMerkelArray(initialIdentityArray);
+
+console.log("Full Merkel Array: ", fullMerkelArray);
+
+const dynamicTreeNodeHtml = preOrderTraversal(fullMerkelArray, 0);
+
+console.log("Dynamic TreeNode HTML: ", dynamicTreeNodeHtml);
