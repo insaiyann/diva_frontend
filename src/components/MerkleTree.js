@@ -56,7 +56,9 @@ const personalIdentity = {
     "firstname": "p1",
     "lastname": "p2",
     "aadhar": "p3",
-    "gender": "p4"
+    "gender": "p4",
+    "age": "p5",
+    "colliz":"p6"
 };
 
 const RecursiveMerkle = (props) => {
